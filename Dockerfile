@@ -1,32 +1,14 @@
+# Etapa de construcción (Build stage)
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-FROM openjdk:17-jdk-slim
-
-# Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
-
-# Copiar el archivo JAR generado por Maven al contenedor
-COPY target/sports-club-manager-backend.jar app.jar
-
-#Build the application
-RUN ./mvnw clean package -DskipTests
-
-# Exponer el puerto en el que la aplicación se ejecutará
-EXPOSE 8080
-
-# Comando para ejecutar la aplicación
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-# Establecer el directorio de trabajo dentro del contenedor
-WORKDIR /app
-
-# Copiar el archivo JAR generado por Maven al contenedor
 COPY . .
+RUN mvn clean package -DskipTests
 
-#Build the application
-RUN ./mvnw clean package -DskipTests
+# Etapa de ejecución (Runtime stage)
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
-# Exponer el puerto en el que la aplicación se ejecutará
 EXPOSE 8080
-
-# Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
